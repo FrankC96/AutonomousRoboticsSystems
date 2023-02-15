@@ -18,13 +18,12 @@ timer = pygame.time.Clock()
 running = True
 while running:
     timer.tick(60)
-    circle = circle()
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
 
     screen.fill((background))
-    pygame.draw.circle(screen, white, (circle.circle_x), 30, 5)
+    pygame.draw.circle(screen, white, (300, 300), 30, 5)
 
     pygame.display.flip()
 
