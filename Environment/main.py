@@ -51,8 +51,7 @@ while running:
         pygame.draw.rect(screen, black, (bounds-block_width, 0 + i * 20, block_width, block_width))
         pygame.draw.rect(screen, black, (0 + i * 20, bounds-block_width, block_width, block_width))
 
-        # pygame.draw.line(screen, black, (60, 80), (130, 100))
-    # pygame.draw.line(screen, black, (300, 300), (300, 300-block_width), 5)
+
     group.update()
     group.draw(screen)
 
