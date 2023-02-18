@@ -5,7 +5,7 @@ from robot import *
 
 pg.init()
 
-fps = 60
+fps = 30
 clock = pg.time.Clock()
 
 def make_surface(size, pos): # size=(w, h), pos=(x, y)
@@ -35,23 +35,24 @@ def GAME_LOOP(running):
                 running = False
             if event.type == pg.KEYDOWN:
                 if event.key == pg.K_w:
-                    robot.update_motor((robot.accel,0))
+                    robot.update_motor((robot.accel,0), fps)
                 if event.key == pg.K_s:
-                    robot.update_motor((-robot.accel,0))
+                    robot.update_motor((-robot.accel,0), fps)
                 if event.key == pg.K_o:
-                    robot.update_motor((0, robot.accel))
+                    robot.update_motor((0, robot.accel), fps)
                 if event.key == pg.K_l:
-                    robot.update_motor((0, -robot.accel))
+                    robot.update_motor((0, -robot.accel), fps)
                 elif event.key == pg.K_x:
                     robot.motors = np.array([0.0, 0.0])
+                    robot.VL = 0
+                    robot.VR = 0
                 elif event.key == pg.K_t:
-                    robot.update_motor((robot.accel, robot.accel))
+                    robot.update_motor((robot.accel, robot.accel), fps)
                 elif event.key == pg.K_g:
-                    robot.update_motor((-robot.accel, -robot.accel))
+                    robot.update_motor((-robot.accel, -robot.accel), fps)
 
         # Movement
-        if robot.motors[0] == robot.motors[1]:
-            robot.move()
+        robot.move(fps)
                     
         # Draw section
         surf1.fill(DARK_GRAY)
@@ -64,6 +65,7 @@ def GAME_LOOP(running):
 
         pg.display.update()
         clock.tick(fps)
+        #print (clock.get_fps())
 
     pg.quit()
         
