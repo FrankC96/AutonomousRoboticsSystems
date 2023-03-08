@@ -1,8 +1,9 @@
 import pygame as pg
 import numpy as np
+
 from colors import *
-from robot import *
 from environment import *
+from robot import *
 
 pg.font.init()
 
@@ -15,6 +16,7 @@ HEIGHT = 720
 size = (WIDTH, HEIGHT)
 screen = pg.display.set_mode(size)
 
+
 def check_collisions(clipped_line):
 
     dist = []
@@ -22,12 +24,18 @@ def check_collisions(clipped_line):
     if clipped_line:
         start, end = clipped_line
         x1, y1 = start
-        dist.append(np.sqrt((robot.pos[0] - x1) ** 2 + (robot.pos[1] - y1) ** 2)-robot.radius)
+        dist.append(
+            np.sqrt((robot.pos[0] - x1) ** 2 + (robot.pos[1] - y1) ** 2) - robot.radius
+        )
     else:
         dist.append(200)
 
     return [dist, [start]]
-def draw_Radar(radar_center, angle_dev, d0, d1, d2, d3, d4, d5, d6, d7, d8, d9, d10, d11):
+
+
+def draw_Radar(
+    radar_center, angle_dev, d0, d1, d2, d3, d4, d5, d6, d7, d8, d9, d10, d11
+):
     angles = np.arange(0, 360, 30)
     radar_len = 200
 
@@ -45,7 +53,9 @@ def draw_Radar(radar_center, angle_dev, d0, d1, d2, d3, d4, d5, d6, d7, d8, d9, 
             d.append(check_collisions(clipped_line))
 
             if d[0][1][0]:
-                pg.draw.line(screen, color, radar_center, (d[0][1][0][0], d[0][1][0][1]), 1)
+                pg.draw.line(
+                    screen, color, radar_center, (d[0][1][0][0], d[0][1][0][1]), 1
+                )
             else:
                 pg.draw.line(screen, color, radar_center, (r_x, r_y), 1)
 
@@ -77,22 +87,48 @@ def draw_Radar(radar_center, angle_dev, d0, d1, d2, d3, d4, d5, d6, d7, d8, d9, 
 
     print_sensors(d0, d1, d2, d3, d4, d5, d6, d7, d8, d9, d10, d11)
 
-def print_sensors(d0,d1,d2,d3,d4,d5,d6,d7,d8,d9,d10,d11):  # a list with distances for each of the 12 lines
+
+def print_sensors(
+    d0, d1, d2, d3, d4, d5, d6, d7, d8, d9, d10, d11
+):  # a list with distances for each of the 12 lines
     font = pg.font.Font(None, 25)
 
-    screen.blit(font.render(f'Sensor 0 {np.round(d0, 2)}', True, (255, 255, 255)), (0, 20))
-    screen.blit(font.render(f'Sensor 1 {np.round(d1, 2)}', True, (255, 255, 255)), (200, 20))
-    screen.blit(font.render(f'Sensor 2 {np.round(d2, 2)}', True, (255, 255, 255)), (400, 20))
-    screen.blit(font.render(f'Sensor 3 {np.round(d3, 2)}', True, (255, 255, 255)), (600, 20))
-    screen.blit(font.render(f'Sensor 4 {np.round(d4, 2)}', True, (255, 255, 255)), (800, 20))
-    screen.blit(font.render(f'Sensor 5 {np.round(d5, 2)}', True, (255, 255, 255)), (1000, 20))
-    screen.blit(font.render(f'Sensor 6 {np.round(d6, 2)}', True, (255, 255, 255)), (0, 50))
-    screen.blit(font.render(f'Sensor 7 {np.round(d7, 2)}', True, (255, 255, 255)), (200, 50))
-    screen.blit(font.render(f'Sensor 8 {np.round(d8, 2)}', True, (255, 255, 255)), (400, 50))
-    screen.blit(font.render(f'Sensor 9 {np.round(d9, 2)}', True, (255, 255, 255)), (600, 50))
-    screen.blit(font.render(f'Sensor 10 {np.round(d10, 2)}', True, (255, 255, 255)), (800, 50))
-    screen.blit(font.render(f'Sensor 11 {np.round(d11, 2)}', True, (255, 255, 255)), (1000, 50))
-
+    screen.blit(
+        font.render(f"Sensor 0 {np.round(d0, 2)}", True, (255, 255, 255)), (0, 20)
+    )
+    screen.blit(
+        font.render(f"Sensor 1 {np.round(d1, 2)}", True, (255, 255, 255)), (200, 20)
+    )
+    screen.blit(
+        font.render(f"Sensor 2 {np.round(d2, 2)}", True, (255, 255, 255)), (400, 20)
+    )
+    screen.blit(
+        font.render(f"Sensor 3 {np.round(d3, 2)}", True, (255, 255, 255)), (600, 20)
+    )
+    screen.blit(
+        font.render(f"Sensor 4 {np.round(d4, 2)}", True, (255, 255, 255)), (800, 20)
+    )
+    screen.blit(
+        font.render(f"Sensor 5 {np.round(d5, 2)}", True, (255, 255, 255)), (1000, 20)
+    )
+    screen.blit(
+        font.render(f"Sensor 6 {np.round(d6, 2)}", True, (255, 255, 255)), (0, 50)
+    )
+    screen.blit(
+        font.render(f"Sensor 7 {np.round(d7, 2)}", True, (255, 255, 255)), (200, 50)
+    )
+    screen.blit(
+        font.render(f"Sensor 8 {np.round(d8, 2)}", True, (255, 255, 255)), (400, 50)
+    )
+    screen.blit(
+        font.render(f"Sensor 9 {np.round(d9, 2)}", True, (255, 255, 255)), (600, 50)
+    )
+    screen.blit(
+        font.render(f"Sensor 10 {np.round(d10, 2)}", True, (255, 255, 255)), (800, 50)
+    )
+    screen.blit(
+        font.render(f"Sensor 11 {np.round(d11, 2)}", True, (255, 255, 255)), (1000, 50)
+    )
 
 
 # Initialize objects
@@ -104,7 +140,7 @@ OBSTACLE_2_LTWH = (800, 200, 150, 200)
 
 # Border obstacles
 bord1 = (80, 100, 1120, 1)
-bord2 = (80, 100, 1, env.border.bottom+100)
+bord2 = (80, 100, 1, env.border.bottom + 100)
 bord3 = (80, env.border.bottom, env.border.width, 1)
 bord4 = (WIDTH - 80, 0, 1, env.border.bottom)
 
@@ -119,8 +155,23 @@ obs = env.return_obs()
 bords = env.return_bords()
 
 robot = Robot(pos=(200, 200), radius=40, env=env)
-d0, d1, d2, d3, d4, d5, d6, d7, d8, d9, d10, d11 = (),(),(),(),(),(),(),(),(),(),(),()
+d0, d1, d2, d3, d4, d5, d6, d7, d8, d9, d10, d11 = (
+    (),
+    (),
+    (),
+    (),
+    (),
+    (),
+    (),
+    (),
+    (),
+    (),
+    (),
+    (),
+)
 font = pg.font.Font(None, 36)
+
+
 def GAME_LOOP(running):
     while running:
         for event in pg.event.get():
@@ -163,7 +214,9 @@ def GAME_LOOP(running):
         env.draw()
         robot.draw()
 
-        draw_Radar(robot.pos, robot.theta, d0, d1, d2, d3, d4, d5, d6, d7, d8, d9, d10,d11)
+        draw_Radar(
+            robot.pos, robot.theta, d0, d1, d2, d3, d4, d5, d6, d7, d8, d9, d10, d11
+        )
 
         pg.display.update()
         clock.tick(FPS)

@@ -73,12 +73,16 @@ class Wall:
 
         # Otherwise, calculate the distance of O
         # from the line formed by S,E.
-
         dist = np.abs(
             np.cross(self.vector, origin - self.start)
             / np.linalg.norm(self.end - self.start)
         )
+
+        # For our purposes the direction of the normal
+        # is always such that the closest point to O
+        # can be found as follows:
         closest_point = origin + dist * self.normal
+
         return closest_point, dist
 
 
@@ -229,5 +233,6 @@ class Environment:
 
     def return_obs(self):
         return self.obstacles
+
     def return_bords(self):
         return self.border
