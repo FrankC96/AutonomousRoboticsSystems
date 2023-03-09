@@ -6,6 +6,7 @@ from tqdm import tqdm
 from network import *
 from simulation import *
 
+
 OUTPUT_PATH = "./plots"
 
 
@@ -45,7 +46,7 @@ class Evolution:
 
     def sort_by_evaluation(self):
         """
-        Sort the organisms in descending order (i.e. best to worst) by their evaluation.
+        Sort the networks in descending order (i.e. best to worst) by their evaluation.
         """
         nets_sorted, values_sorted = zip(
             *sorted(
@@ -55,6 +56,10 @@ class Evolution:
         return np.array(nets_sorted), np.array(values_sorted)
 
     def diversity(self):
+        """
+        Calculate the diversity of the network population by summing the
+        euclidean differences of their weights and biases.
+        """
         diversity = 0
         for i, net_0 in enumerate(self.nets):
             for net_1 in self.nets[i + 1 :]:
@@ -79,6 +84,10 @@ class Evolution:
         self.history_diversity.append(self.diversity())
 
     def generation(self):
+        """
+        Creates a new generation of networks from the
+        current one.
+        """
         new_generation = []
         nets_sorted, values_sorted = self.sort_by_evaluation()
 
@@ -92,7 +101,11 @@ class Evolution:
         self._log_histories(values_sorted)
 
     def evolve(self, generations):
+        """
+        Implements the evolutionary algorithm.
+        """
         progress_bar = tqdm(range(generations), leave=False)
+
         for _ in range(generations):
             self.generation()
             progress_bar.update()

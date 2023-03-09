@@ -21,10 +21,13 @@ class Simulation:
     def run_init(self):
         env = make_env(self.env_config)
         robot = make_robot(self.robot_config, env)
-        
+
         return env, robot
 
     def run(self):
+        """
+        Performs a simulation with the robot. Returns the fitness value.
+        """
         # TODO: run and export simulation without
         # pygame opening a window
 
@@ -68,5 +71,8 @@ class Simulation:
         return self.fitness(start_pos, end_pos)
 
     def fitness(self, start, end):
+        """
+        Fitness function.
+        """
         # TODO: fitness function
         return np.linalg.norm(end - start)
