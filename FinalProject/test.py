@@ -43,8 +43,7 @@ def test_simulation():
 
 def test_evolution():
     evolution = Evolution(FPS, NETS_CONFIG, ENV_CONFIG, ROBOT_CONFIG)
-    evals = evolution.evaluate_all()
-    print(evals)
+    evolution.evolve(3)
 
 
 if __name__ == "__main__":
