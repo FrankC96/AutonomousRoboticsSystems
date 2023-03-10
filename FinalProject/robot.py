@@ -264,7 +264,6 @@ class Robot:
                 self.pos + self.radius * sensor_dir,
                 self.pos + (self.radius + out) * sensor_dir,
             )
-            out = round(out)
             out_str = self.font.render(f"Sensor {i}: {round(out)}", True, WHITE)
             self.env.surface.blit(
                 out_str,
