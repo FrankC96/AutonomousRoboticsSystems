@@ -1,4 +1,4 @@
-FPS = 30
+FPS = 1
 
 ENV_CONFIG = {
     "size": (1280, 720),
@@ -11,7 +11,7 @@ ENV_CONFIG = {
     ],
 }
 
-ROBOT_CONFIG = {"pos": (200, 200), "radius": 40}
+ROBOT_CONFIG = {"pos": (450, 550), "radius": 40}
 
 NET_LAYERS = [12, 4, 2]
 NETS_CONFIG = {"num": 3, "layers": NET_LAYERS}

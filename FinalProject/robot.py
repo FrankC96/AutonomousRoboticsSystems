@@ -5,6 +5,9 @@ from colors import *
 from environment import *
 
 
+SENSOR_DISTANCE = 200
+
+
 class Robot:
     """
     A class to handle the robot's movements and appearance
@@ -23,6 +26,7 @@ class Robot:
         self.velocity = np.array([0.0, 0.0])
         # Initialize the environment in which the robot moves
         self.env = env
+        self.update_sensors()
 
     def set_motors(self, motors, fps):
         """
@@ -168,6 +172,8 @@ class Robot:
         # Update position vector
         self.pos += dpos
 
+        self.update_sensors()
+
     def draw(self):
         """
         Draws the robot inside the environment.
@@ -186,6 +192,35 @@ class Robot:
             [x_component, y_component]
         )  # End position of line
         pg.draw.line(self.env.surface, WHITE, start_pos, end_pos)
+        self.draw_sensors()
+
+    def draw_sensors(self):
+        for sensor in self.sensors:
+            pg.draw.line(
+                self.env.surface,
+                LIGHT_GRAY,
+                self.pos + self.radius * sensor,
+                self.pos + (self.radius + SENSOR_DISTANCE) * sensor,
+            )
+
+    def update_sensors(self):
+        self.sensors = [
+            np.array(
+                (np.cos(k * np.pi / 6 - self.theta), np.sin(k * np.pi / 6 - self.theta))
+            )
+            for k in range(12)
+        ]
+
+    def sensor_output(self, sensor):
+        intersections = []
+        for obstacle in self.env.obstacles:
+            intersection = obstacle.intersection_with_segment(
+                self.pos + self.radius * sensor,
+                self.pos + (self.radius + SENSOR_DISTANCE) * sensor,
+            )
+            intersections.append(intersection)
+
+        return intersections
 
 
 def make_robot(robot_config, env):

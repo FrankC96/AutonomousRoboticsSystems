@@ -50,7 +50,7 @@ class Evolution:
         """
         nets_sorted, values_sorted = zip(
             *sorted(
-                zip(self.nets, self.evaluate_all()), key=lambda ov: ov[1], reverse=True
+                zip(self.nets, self.evaluate_all()), key=lambda nv: nv[1], reverse=True
             )
         )
         return np.array(nets_sorted), np.array(values_sorted)
