@@ -31,8 +31,8 @@ class Network:
         else:
             self.activations = activations
 
-    def __call__(self, x):
-        a = np.array(x).reshape(self.layers[0], 1)
+    def __call__(self, x: np.ndarray):
+        a = x.reshape(self.layers[0], 1)
 
         for l in range(len(self.layers) - 1):
             z = self.weights[l] @ a + self.biases[l]

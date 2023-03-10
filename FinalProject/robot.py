@@ -5,7 +5,7 @@ from colors import *
 from environment import *
 
 
-SENSOR_DISTANCE = 200
+MAX_SENSOR_DISTANCE = 100
 
 
 class Robot:
@@ -15,18 +15,23 @@ class Robot:
     """
 
     def __init__(self, pos, radius, env: Environment):
+        # Initialise the environment in which the robot moves
+        self.env = env
+
         # Initialise attributes of the robot
         self.pos = np.array(pos).astype("float64")  # (x, y)
         self.radius = radius
-        self.motors = np.array([0.0, 0.0])  # Left wheel, Right wheel
-        self.VL = 0
-        self.VR = 0
+        self.motors = np.array([0.0, 0.0])  # Wheel motor speeds
+        self.VL = 0  # Left wheel true speed
+        self.VR = 0  # Right wheel true speed
         self.accel = 1  # How fast to increment the speed of each wheel
         self.theta = np.pi / 2  # Angle of the robot with the x axis in rads
-        self.velocity = np.array([0.0, 0.0])
-        # Initialize the environment in which the robot moves
-        self.env = env
-        self.update_sensors()
+        self.update_sensors()  # Sensor directions and output
+
+        # Initialise font and size parameters for sensor output
+        pg.font.init()
+        self.font = pg.font.Font(pg.font.get_default_font(), 16)
+        self.get_sensor_out_box_size()
 
     def set_motors(self, motors, fps):
         """
@@ -87,6 +92,7 @@ class Robot:
         Calculates the displacement and the new angle of the robot assuming
         there are no borders or obstacles to stop its movement.
         """
+
         # Forward movement
         if self.motors[0] == self.motors[1]:
             x_component = np.cos(self.theta)  # x component of direction vector
@@ -113,8 +119,8 @@ class Robot:
                     [0, 0, 1],
                 ]
             )
-            b = np.array([self.pos[0] - ICC[0], self.pos[1] - ICC[1], self.theta])
-            c = np.array([ICC[0], ICC[1], omega * delta_t])
+            b = np.append(self.pos - ICC, self.theta)
+            c = np.append(ICC, omega * delta_t)
             new_x, new_y, new_theta = np.matmul(A, b) + c
 
             return np.array((new_x, new_y)) - self.pos, new_theta
@@ -131,6 +137,7 @@ class Robot:
         of an obstacle) is exactly 0 (which might not be the case if the collision has been detected
         from a further distance, especially at high speeds).
         """
+
         dpos_og = dpos
 
         # Collisions with the border
@@ -159,7 +166,8 @@ class Robot:
 
     def move(self, fps):
         """
-        Updates the position and the angle of the robot.
+        Updates the position and the angle of the robot, as well as the sensor
+        position and output.
         """
         dpos, new_theta = self.calculate_dpos_new_theta(fps)
 
@@ -172,7 +180,57 @@ class Robot:
         # Update position vector
         self.pos += dpos
 
+        # Update the sensors according to the new position of the robot
         self.update_sensors()
+
+    def update_sensors(self):
+        """
+        Updates the sensors' direction and output.
+        """
+        self.sensors_dir = [
+            np.array(
+                (
+                    np.cos(k * np.pi / 6 + self.theta),
+                    np.sin(-k * np.pi / 6 - self.theta),
+                )
+            )
+            for k in range(12)
+        ]
+        self.sensors_out = np.array(
+            [self.sensor_output(sensor_dir) for sensor_dir in self.sensors_dir]
+        )
+
+    def sensor_output(self, sensor_dir):
+        """
+        Border and obstacle detection for each sensor.
+        """
+
+        dist = MAX_SENSOR_DISTANCE
+
+        # Border detection
+        clipped_sensor = self.env.border.clipline(
+            self.pos + self.radius * sensor_dir,
+            self.pos + (self.radius + MAX_SENSOR_DISTANCE) * sensor_dir,
+        )
+        if clipped_sensor:
+            point = clipped_sensor[1]
+            new_dist = np.linalg.norm(self.pos + self.radius * sensor_dir - point)
+            if new_dist < dist:
+                dist = new_dist
+
+        # Obstacle detection
+        for obstacle in self.env.obstacles:
+            clipped_sensor = obstacle.clipline(
+                self.pos + self.radius * sensor_dir,
+                self.pos + (self.radius + MAX_SENSOR_DISTANCE) * sensor_dir,
+            )
+            if clipped_sensor:
+                point = clipped_sensor[0]
+                new_dist = np.linalg.norm(self.pos + self.radius * sensor_dir - point)
+                if new_dist < dist:
+                    dist = new_dist
+
+        return dist
 
     def draw(self):
         """
@@ -195,32 +253,31 @@ class Robot:
         self.draw_sensors()
 
     def draw_sensors(self):
-        for sensor in self.sensors:
+        """
+        Draws the clipped sensors.
+        """
+        for i, sensor_dir in enumerate(self.sensors_dir):
+            out = self.sensors_out[i]
             pg.draw.line(
                 self.env.surface,
-                LIGHT_GRAY,
-                self.pos + self.radius * sensor,
-                self.pos + (self.radius + SENSOR_DISTANCE) * sensor,
+                RED,
+                self.pos + self.radius * sensor_dir,
+                self.pos + (self.radius + out) * sensor_dir,
+            )
+            out = round(out)
+            out_str = self.font.render(f"Sensor {i}: {round(out)}", True, WHITE)
+            self.env.surface.blit(
+                out_str,
+                (
+                    i // 3 * (self.sensor_out_str_width + 100),
+                    i % 3 * (self.sensor_out_str_height + 2),
+                ),
             )
 
-    def update_sensors(self):
-        self.sensors = [
-            np.array(
-                (np.cos(k * np.pi / 6 - self.theta), np.sin(k * np.pi / 6 - self.theta))
-            )
-            for k in range(12)
-        ]
-
-    def sensor_output(self, sensor):
-        intersections = []
-        for obstacle in self.env.obstacles:
-            intersection = obstacle.intersection_with_segment(
-                self.pos + self.radius * sensor,
-                self.pos + (self.radius + SENSOR_DISTANCE) * sensor,
-            )
-            intersections.append(intersection)
-
-        return intersections
+    def get_sensor_out_box_size(self):
+        max_out_str = self.font.render(f"Sensor 12: {MAX_SENSOR_DISTANCE}", True, WHITE)
+        self.sensor_out_str_width = max_out_str.get_width()
+        self.sensor_out_str_height = max_out_str.get_height()
 
 
 def make_robot(robot_config, env):

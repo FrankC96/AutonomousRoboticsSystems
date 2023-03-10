@@ -45,10 +45,8 @@ class Simulation:
                     running = False
 
             # Movement
-            # TODO: move robot based on sensor input
-            sensors = np.random.uniform(-2, 2, (12,))
+            sensors = robot.sensors_out / MAX_SENSOR_DISTANCE
             motors = self.network(sensors)
-            motors = (robot.motors + motors) / 2
 
             robot.set_motors(motors, self.fps)
             robot.move(self.fps)

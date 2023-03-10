@@ -1,4 +1,4 @@
-FPS = 1
+FPS = 30
 
 ENV_CONFIG = {
     "size": (1280, 720),

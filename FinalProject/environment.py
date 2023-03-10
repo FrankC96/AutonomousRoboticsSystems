@@ -202,9 +202,6 @@ class Obstacle(pg.Rect):
 
         return None, None
 
-    def intersection_with_segment(self, seg_start, seg_end):
-        return self.clipline(seg_start, seg_end)
-
 
 class Environment:
     """

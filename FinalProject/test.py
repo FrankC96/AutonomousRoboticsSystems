@@ -28,14 +28,6 @@ def game_loop():
         env.draw()
         robot.draw()
 
-        print()
-        for sensor in robot.sensors:
-            intersections = robot.sensor_output(sensor)
-            for i, intersection in enumerate(intersections):
-                if intersection:
-                    print(i)
-                    print(intersection)
-
         pg.display.update()
         clock.tick(FPS)
 
@@ -55,5 +47,6 @@ def test_evolution():
 
 
 if __name__ == "__main__":
-    # test_evolution()
     game_loop()
+    # test_simulation()
+    # test_evolution()
