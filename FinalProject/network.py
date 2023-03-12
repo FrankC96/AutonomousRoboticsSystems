@@ -2,14 +2,24 @@ import numpy as np
 
 
 def random_weights(layers):
+    """
+    Generates random weights sampled from the normal distribution.
+    """
     return [np.random.randn(l1, l0) for l1, l0 in zip(layers[1:], layers[:-1])]
 
 
 def random_biases(layers):
+    """
+    Generates random biases sampled from the normal distribution.
+    """
     return [np.random.randn(l, 1) for l in layers[1:]]
 
 
 class Network:
+    """
+    Defines the neural network architecture.
+    """
+
     def __init__(self, layers, weights=None, biases=None, activations=None):
         self.layers = layers
 
@@ -27,7 +37,9 @@ class Network:
 
         # Set activations
         if activations is None:
-            self.activations = [lambda x: x] * (len(layers) - 1)
+            self.activations = [lambda x: x] * (len(layers) - 2) + [
+                lambda x: np.tanh(x)
+            ]
         else:
             self.activations = activations
 

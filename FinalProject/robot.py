@@ -11,7 +11,7 @@ MAX_SENSOR_DISTANCE = 100
 class Robot:
     """
     A class to handle the robot's movements and appearance
-    within an environment.
+    within an environment and to calculate the fitness parameters.
     """
 
     def __init__(self, pos, radius, env: Environment):
@@ -28,10 +28,19 @@ class Robot:
         self.theta = np.pi / 2  # Angle of the robot with the x axis in rads
         self.update_sensors()  # Sensor directions and output
 
-        # Initialise font and size parameters for sensor output
+        # Initialise font and size parameters to print sensor output
         pg.font.init()
-        self.font = pg.font.Font(pg.font.get_default_font(), 16)
-        self.get_sensor_out_box_size()
+        self._font = pg.font.Font(pg.font.get_default_font(), 16)
+        max_out_str = self._font.render(
+            f"Sensor 12: {MAX_SENSOR_DISTANCE}.00", True, WHITE
+        )
+        self._sensor_out_str_width = max_out_str.get_width()
+        self._sensor_out_str_height = max_out_str.get_height()
+
+        # Fitness parameters
+        self.dist_travelled = 0  # Total distance travelled
+        self.collected_dust = 0  # Total number of dust particles collected
+        self.collisions_num = 0  # Total number of collisions
 
     def set_motors(self, motors, fps):
         """
@@ -145,6 +154,9 @@ class Robot:
             self.pos, dpos, self.radius
         )
         for collision_normal, current_dist in normals_and_distances:
+            # Count collision
+            self.collisions_num += 1
+            # Update dpos
             dpos += collision_normal * (
                 (current_dist - self.radius) - np.dot(dpos_og, collision_normal)
             )
@@ -158,6 +170,9 @@ class Robot:
                 self.pos, dpos, self.radius
             )
             if collision_normal is not None:
+                # Count collision
+                self.collisions_num += 1
+                # Update dpos
                 dpos += collision_normal * (
                     (current_dist - self.radius) - np.dot(dpos_og, collision_normal)
                 )
@@ -183,6 +198,21 @@ class Robot:
         # Update the sensors according to the new position of the robot
         self.update_sensors()
 
+        # Collect dust
+        self.collect_dust()
+
+        # Update total distance travelled
+        self.dist_travelled += np.linalg.norm(dpos)
+
+    def collect_dust(self):
+        """
+        Collects the dust in the environment.
+        """
+        for i, dust in enumerate(self.env.dust):
+            if np.linalg.norm(self.pos - dust) <= self.radius:
+                self.env.dust.pop(i)
+                self.collected_dust += 1
+
     def update_sensors(self):
         """
         Updates the sensors' direction and output.
@@ -202,7 +232,7 @@ class Robot:
 
     def sensor_output(self, sensor_dir):
         """
-        Border and obstacle detection for each sensor.
+        Returns the output of a sensor by detecting any collisions.
         """
 
         dist = MAX_SENSOR_DISTANCE
@@ -250,11 +280,13 @@ class Robot:
             [x_component, y_component]
         )  # End position of line
         pg.draw.line(self.env.surface, WHITE, start_pos, end_pos)
+
+        # Sensors
         self.draw_sensors()
 
     def draw_sensors(self):
         """
-        Draws the clipped sensors.
+        Draws the clipped sensors and prints their output.
         """
         for i, sensor_dir in enumerate(self.sensors_dir):
             out = self.sensors_out[i]
@@ -264,21 +296,22 @@ class Robot:
                 self.pos + self.radius * sensor_dir,
                 self.pos + (self.radius + out) * sensor_dir,
             )
-            out_str = self.font.render(f"Sensor {i}: {round(out)}", True, WHITE)
+
+            # Print output
+            out_str = self._font.render(f"Sensor {i}: {round(out, 2)}", True, WHITE)
             self.env.surface.blit(
                 out_str,
                 (
-                    i // 3 * (self.sensor_out_str_width + 100),
-                    i % 3 * (self.sensor_out_str_height + 2),
+                    i // 3 * (self._sensor_out_str_width + 100)
+                    + self.env.border.topleft[0],
+                    i % 3 * (self._sensor_out_str_height + 10) + 10,
                 ),
             )
 
-    def get_sensor_out_box_size(self):
-        max_out_str = self.font.render(f"Sensor 12: {MAX_SENSOR_DISTANCE}", True, WHITE)
-        self.sensor_out_str_width = max_out_str.get_width()
-        self.sensor_out_str_height = max_out_str.get_height()
-
 
 def make_robot(robot_config, env):
+    """
+    Creates a robot from a configuration dictionary and an environment.
+    """
     robot = Robot(pos=robot_config["pos"], radius=robot_config["radius"], env=env)
     return robot

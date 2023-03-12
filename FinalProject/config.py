@@ -9,6 +9,7 @@ ENV_CONFIG = {
         (800, 500, 100, 100),
         (900, 200, 200, 300),
     ],
+    "dust particles": 1000,
 }
 
 ROBOT_CONFIG = {"pos": (450, 550), "radius": 40}

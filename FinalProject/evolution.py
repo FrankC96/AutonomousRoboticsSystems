@@ -11,6 +11,10 @@ OUTPUT_PATH = "./plots"
 
 
 class Evolution:
+    """
+    A class to perform the evolutionary algorithm and produce plots with the results.
+    """
+
     def __init__(self, fps, nets_config, env_config, robot_config):
         self.nets_num = nets_config["num"]
         self.net_layers = nets_config["layers"]
@@ -53,7 +57,7 @@ class Evolution:
                 zip(self.nets, self.evaluate_all()), key=lambda nv: nv[1], reverse=True
             )
         )
-        return np.array(nets_sorted), np.array(values_sorted)
+        return nets_sorted, np.array(values_sorted)
 
     def diversity(self):
         """
@@ -74,7 +78,7 @@ class Evolution:
 
     # TODO: selection, crossover & mutation, reproduction
 
-    def _log_histories(self, values_sorted):
+    def log_histories(self, values_sorted):
         """
         Log the histories for plotting.
         """
@@ -83,34 +87,46 @@ class Evolution:
         self.history_average.append(np.average(values_sorted))
         self.history_diversity.append(self.diversity())
 
-    def generation(self):
+    def generation(self, gen):
         """
         Creates a new generation of networks from the
         current one.
         """
         new_generation = []
         nets_sorted, values_sorted = self.sort_by_evaluation()
+        print(f"Generation {gen}: {values_sorted}")
+        print()
 
-        new_generation.extend(nets_sorted[:-1])
+        for net in nets_sorted[:-1]:
+            for i, w in enumerate(net.weights):
+                w += 1 / (gen + 1) * np.sign(w) * np.random.uniform(size=w.shape)
+                net.weights[i] = w
+
+            for i, b in enumerate(net.biases):
+                b += 1 / (gen + 1) * np.sign(b) * np.random.uniform(size=b.shape)
+                net.biases[i] = b
+
+            new_generation.append(net)
+
         new_generation.append(Network(self.net_layers))
 
         # Update the organisms with the new generation
         self.nets = new_generation
 
         # Log the histories for plotting
-        self._log_histories(values_sorted)
+        self.log_histories(values_sorted)
 
     def evolve(self, generations):
         """
         Implements the evolutionary algorithm.
         """
-        progress_bar = tqdm(range(generations), leave=False)
+        # progress_bar = tqdm(range(generations), leave=False)
 
         for _ in range(generations):
-            self.generation()
-            progress_bar.update()
+            self.generation(_)
+            # progress_bar.update()
 
-        progress_bar.close()
+        # progress_bar.close()
 
         # Create the plots
         self.plot_history_best_worst_avg()

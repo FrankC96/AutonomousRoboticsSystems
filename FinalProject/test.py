@@ -38,15 +38,15 @@ def test_simulation():
     net = Network(NET_LAYERS)
     sim = Simulation(FPS, net, ENV_CONFIG, ROBOT_CONFIG)
     evaluation = sim.run()
-    print(evaluation)
+    print("Fitness:", evaluation)
 
 
 def test_evolution():
     evolution = Evolution(FPS, NETS_CONFIG, ENV_CONFIG, ROBOT_CONFIG)
-    evolution.evolve(3)
+    evolution.evolve(10)
 
 
 if __name__ == "__main__":
-    game_loop()
+    # game_loop()
     # test_simulation()
-    # test_evolution()
+    test_evolution()

@@ -9,9 +9,17 @@ from network import *
 
 
 SIMULATION_SECS = 10
+MAX_MOTOR_SPEED = 10
+
+FITNESS_WEIGHTS = (2, 10, 1)
 
 
 class Simulation:
+    """
+    A class to perform a simulation for a robot controlled by a neural network
+    in an environment and calculates the fitness value.
+    """
+
     def __init__(self, fps, network: Network, env_config, robot_config):
         self.fps = fps
         self.env_config = env_config
@@ -35,7 +43,6 @@ class Simulation:
         clock = pg.time.Clock()
 
         start_time = time.time()
-        start_pos = robot.pos.copy()
 
         # Run loop
         running = True
@@ -46,7 +53,7 @@ class Simulation:
 
             # Movement
             sensors = robot.sensors_out / MAX_SENSOR_DISTANCE
-            motors = self.network(sensors)
+            motors = self.network(sensors) * MAX_MOTOR_SPEED
 
             robot.set_motors(motors, self.fps)
             robot.move(self.fps)
@@ -58,19 +65,29 @@ class Simulation:
             pg.display.update()
             clock.tick(self.fps)
 
-            # TODO: terminate simulation when
             if time.time() - start_time > SIMULATION_SECS:
                 running = False
 
-        end_pos = robot.pos.copy()
-
         pg.quit()
 
-        return self.fitness(start_pos, end_pos)
+        fitness_value = self.fitness(
+            robot.dist_travelled, robot.collected_dust, robot.collisions_num
+        )
 
-    def fitness(self, start, end):
+        print("Total distance travelled:", robot.dist_travelled)
+        print("Total number of dust particles collected:", robot.collected_dust)
+        print("Total number of collisions:", robot.collisions_num)
+        print("Fitness value:", fitness_value)
+        print()
+
+        return fitness_value
+
+    def fitness(self, dist_travelled, collected_dust, collisions_num):
         """
         Fitness function.
         """
-        # TODO: fitness function
-        return np.linalg.norm(end - start)
+        return (
+            FITNESS_WEIGHTS[0] * dist_travelled
+            + FITNESS_WEIGHTS[1] * collected_dust
+            - FITNESS_WEIGHTS[2] * collisions_num
+        )
