@@ -29,15 +29,16 @@ class Robot:
         self.update_sensors()  # Sensor directions and output
 
         # Initialise font and size parameters to print sensor output
-        pg.font.init()
-        self._font = pg.font.Font(pg.font.get_default_font(), 16)
-        max_out_str = self._font.render(
-            f"Sensor 12: {MAX_SENSOR_DISTANCE}.00", True, WHITE
-        )
-        self._sensor_out_str_width = max_out_str.get_width()
-        self._sensor_out_str_height = max_out_str.get_height()
+        # pg.font.init()
+        # self._font = pg.font.Font(pg.font.get_default_font(), 16)
+        # max_out_str = self._font.render(
+        #     f"Sensor 12: {MAX_SENSOR_DISTANCE}.00", True, WHITE
+        # )
+        # self._sensor_out_str_width = max_out_str.get_width()
+        # self._sensor_out_str_height = max_out_str.get_height()
 
         # Fitness parameters
+        self.dust = []
         self.dist_travelled = 0  # Total distance travelled
         self.collected_dust = 0  # Total number of dust particles collected
         self.collisions_num = 0  # Total number of collisions
@@ -204,13 +205,25 @@ class Robot:
         # Update total distance travelled
         self.dist_travelled += np.linalg.norm(dpos)
 
+    def generate_dust(self, dust_particles):
+        """
+        Generates the dust.
+        """
+        for _ in range(dust_particles):
+            while True:
+                x = np.random.randint(self.env.border.left, self.env.border.right)
+                y = np.random.randint(self.env.border.top, self.env.border.bottom)
+                if all(not obstacle.inside((x, y)) for obstacle in self.env.obstacles):
+                    break
+            self.dust.append(np.array((x, y)))
+
     def collect_dust(self):
         """
         Collects the dust in the environment.
         """
-        for i, dust in enumerate(self.env.dust):
+        for i, dust in enumerate(self.dust):
             if np.linalg.norm(self.pos - dust) <= self.radius:
-                self.env.dust.pop(i)
+                self.dust.pop(i)
                 self.collected_dust += 1
 
     def update_sensors(self):
@@ -298,15 +311,15 @@ class Robot:
             )
 
             # Print output
-            out_str = self._font.render(f"Sensor {i}: {round(out, 2)}", True, WHITE)
-            self.env.surface.blit(
-                out_str,
-                (
-                    i // 3 * (self._sensor_out_str_width + 100)
-                    + self.env.border.topleft[0],
-                    i % 3 * (self._sensor_out_str_height + 10) + 10,
-                ),
-            )
+            # out_str = self._font.render(f"Sensor {i}: {round(out, 2)}", True, WHITE)
+            # self.env.surface.blit(
+            #     out_str,
+            #     (
+            #         i // 3 * (self._sensor_out_str_width + 100)
+            #         + self.env.border.topleft[0],
+            #         i % 3 * (self._sensor_out_str_height + 10) + 10,
+            #     ),
+            # )
 
 
 def make_robot(robot_config, env):
@@ -314,4 +327,6 @@ def make_robot(robot_config, env):
     Creates a robot from a configuration dictionary and an environment.
     """
     robot = Robot(pos=robot_config["pos"], radius=robot_config["radius"], env=env)
+    robot.generate_dust(robot_config["dust particles"])
+
     return robot

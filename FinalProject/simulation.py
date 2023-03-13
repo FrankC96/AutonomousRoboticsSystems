@@ -20,26 +20,29 @@ class Simulation:
     in an environment and calculates the fitness value.
     """
 
-    def __init__(self, fps, network: Network, env_config, robot_config):
+    def __init__(self, fps, networks: list[Network], env_config, robot_config):
         self.fps = fps
         self.env_config = env_config
         self.robot_config = robot_config
-        self.network = network
+        self.networks = networks
 
-    def run_init(self):
-        env = make_env(self.env_config)
-        robot = make_robot(self.robot_config, env)
+    def run_init(self, draw=False):
+        """
+        Initialise the environment and the robot for the simulation.
+        """
+        env = make_env(self.env_config, draw)
+        robots = [make_robot(self.robot_config, env) for _ in self.networks]
 
-        return env, robot
+        return env, robots
 
-    def run(self):
+    def run(self, draw=False):
         """
         Performs a simulation with the robot. Returns the fitness value.
         """
         # TODO: run and export simulation without
         # pygame opening a window
 
-        env, robot = self.run_init()
+        env, robots = self.run_init(draw)
         clock = pg.time.Clock()
 
         start_time = time.time()
@@ -51,18 +54,30 @@ class Simulation:
                 if event.type == pg.QUIT:
                     running = False
 
+            if draw:
+                # Draw environment
+                env.draw()
+
+                # Draw dust
+                for robot in robots:
+                    for x, y in robot.dust:
+                        pg.draw.circle(env.surface, LIGHTER_GRAY, (x, y), 1)
+
             # Movement
-            sensors = robot.sensors_out / MAX_SENSOR_DISTANCE
-            motors = self.network(sensors) * MAX_MOTOR_SPEED
+            for robot, network in zip(robots, self.networks):
+                sensors = robot.sensors_out / MAX_SENSOR_DISTANCE
+                motors = network(sensors) * MAX_MOTOR_SPEED
 
-            robot.set_motors(motors, self.fps)
-            robot.move(self.fps)
+                robot.set_motors(motors, self.fps)
+                robot.move(self.fps)
 
-            # Draw environment and robot
-            env.draw()
-            robot.draw()
+                if draw:
+                    # Draw robot
+                    robot.draw()
 
-            pg.display.update()
+            if draw:
+                pg.display.update()
+
             clock.tick(self.fps)
 
             if time.time() - start_time > SIMULATION_SECS:
@@ -70,17 +85,15 @@ class Simulation:
 
         pg.quit()
 
-        fitness_value = self.fitness(
-            robot.dist_travelled, robot.collected_dust, robot.collisions_num
-        )
+        fitness_values = []
+        for robot in robots:
+            fitness_values.append(
+                self.fitness(
+                    robot.dist_travelled, robot.collected_dust, robot.collisions_num
+                )
+            )
 
-        print("Total distance travelled:", robot.dist_travelled)
-        print("Total number of dust particles collected:", robot.collected_dust)
-        print("Total number of collisions:", robot.collisions_num)
-        print("Fitness value:", fitness_value)
-        print()
-
-        return fitness_value
+        return fitness_values
 
     def fitness(self, dist_travelled, collected_dust, collisions_num):
         """

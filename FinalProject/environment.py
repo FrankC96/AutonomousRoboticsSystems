@@ -215,25 +215,12 @@ class Environment:
         self.surface = surface
         self.border = Border(surface, left, top, width, height)
         self.obstacles: list[Obstacle] = []
-        self.dust = []
 
     def add_obstacle(self, left, top, width, height):
         """
         Adds an obstacle to the environment.
         """
         self.obstacles.append(Obstacle(self.surface, left, top, width, height))
-
-    def generate_dust(self, dust_particles):
-        """
-        Generates the dust.
-        """
-        for _ in range(dust_particles):
-            while True:
-                x = np.random.randint(self.border.left, self.border.right)
-                y = np.random.randint(self.border.top, self.border.bottom)
-                if all(not obstacle.inside((x, y)) for obstacle in self.obstacles):
-                    break
-            self.dust.append(np.array((x, y)))
 
     def draw(self):
         """
@@ -243,20 +230,21 @@ class Environment:
         self.border.draw()
         for obstacle in self.obstacles:
             obstacle.draw()
-        for x, y in self.dust:
-            pg.draw.circle(self.surface, LIGHTER_GRAY, (x, y), 1)
 
 
-def make_env(env_config):
+def make_env(env_config, draw=False):
     """
     Creates an environment from a configuration dictionary.
     """
-    screen = pg.display.set_mode(env_config["size"])
+    if draw:
+        screen = pg.display.set_mode(env_config["size"])
+    else:
+        pg.init()
+        screen = pg.Surface(env_config["size"])
+
     env = Environment(screen, *env_config["border"])
 
     for obstacle_ltwh in env_config["obstacles"]:
         env.add_obstacle(*obstacle_ltwh)
-
-    env.generate_dust(env_config["dust particles"])
 
     return env

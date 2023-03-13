@@ -9,10 +9,13 @@ ENV_CONFIG = {
         (800, 500, 100, 100),
         (900, 200, 200, 300),
     ],
-    "dust particles": 1000,
 }
 
-ROBOT_CONFIG = {"pos": (450, 550), "radius": 40}
+ROBOT_CONFIG = {
+    "pos": (450, 550),
+    "radius": 40,
+    "dust particles": 500,
+}
 
 NET_LAYERS = [12, 4, 2]
-NETS_CONFIG = {"num": 3, "layers": NET_LAYERS}
+NETS_CONFIG = {"num": 10, "layers": NET_LAYERS}

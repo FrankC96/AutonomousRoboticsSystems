@@ -33,28 +33,24 @@ class Evolution:
 
     # ==================== Evaluation ====================
 
-    def evaluate_single(self, net):
-        """
-        Evaluate a single network by running a simulation.
-        """
-        sim = Simulation(self.fps, net, self.env_config, self.robot_config)
-        eval = sim.run()
-
-        return eval
-
-    def evaluate_all(self):
+    def evaluate_all(self, draw=False):
         """
         Evaluate all networks.
         """
-        return np.array([self.evaluate_single(net) for net in self.nets])
+        sim = Simulation(self.fps, self.nets, self.env_config, self.robot_config)
+        evals = sim.run(draw)
 
-    def sort_by_evaluation(self):
+        return np.array(evals)
+
+    def sort_by_evaluation(self, draw=False):
         """
         Sort the networks in descending order (i.e. best to worst) by their evaluation.
         """
         nets_sorted, values_sorted = zip(
             *sorted(
-                zip(self.nets, self.evaluate_all()), key=lambda nv: nv[1], reverse=True
+                zip(self.nets, self.evaluate_all(draw)),
+                key=lambda nv: nv[1],
+                reverse=True,
             )
         )
         return nets_sorted, np.array(values_sorted)
@@ -78,6 +74,8 @@ class Evolution:
 
     # TODO: selection, crossover & mutation, reproduction
 
+    # ==================== Evolutionary algorithm ====================
+
     def log_histories(self, values_sorted):
         """
         Log the histories for plotting.
@@ -87,13 +85,13 @@ class Evolution:
         self.history_average.append(np.average(values_sorted))
         self.history_diversity.append(self.diversity())
 
-    def generation(self, gen):
+    def generation(self, gen, draw=False):
         """
         Creates a new generation of networks from the
         current one.
         """
         new_generation = []
-        nets_sorted, values_sorted = self.sort_by_evaluation()
+        nets_sorted, values_sorted = self.sort_by_evaluation(draw)
         print(f"Generation {gen}: {values_sorted}")
         print()
 
@@ -116,14 +114,14 @@ class Evolution:
         # Log the histories for plotting
         self.log_histories(values_sorted)
 
-    def evolve(self, generations):
+    def evolve(self, generations, draw=False):
         """
         Implements the evolutionary algorithm.
         """
         # progress_bar = tqdm(range(generations), leave=False)
 
-        for _ in range(generations):
-            self.generation(_)
+        for i in range(generations):
+            self.generation(i, draw)
             # progress_bar.update()
 
         # progress_bar.close()

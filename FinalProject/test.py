@@ -11,7 +11,7 @@ from config import *
 
 def game_loop():
     clock = pg.time.Clock()
-    env = make_env(ENV_CONFIG)
+    env = make_env(ENV_CONFIG, True)
     robot = make_robot(ROBOT_CONFIG, env)
 
     running = True
@@ -43,7 +43,7 @@ def test_simulation():
 
 def test_evolution():
     evolution = Evolution(FPS, NETS_CONFIG, ENV_CONFIG, ROBOT_CONFIG)
-    evolution.evolve(10)
+    evolution.evolve(3, draw=False)
 
 
 if __name__ == "__main__":
