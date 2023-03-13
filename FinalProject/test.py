@@ -37,7 +37,7 @@ def game_loop():
 def test_simulation():
     print()
     net = Network(NET_LAYERS)
-    sim = Simulation(FPS, net, ENV_CONFIG, ROBOT_CONFIG)
+    sim = Simulation(FPS, [net], ENV_CONFIG, ROBOT_CONFIG)
     evaluation = sim.run()
     print("Fitness:", evaluation)
 
