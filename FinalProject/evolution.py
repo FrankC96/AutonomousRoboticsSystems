@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import matplotlib.pyplot as plt
+import random
 from tqdm import tqdm
 
 from network import *
@@ -15,7 +16,9 @@ class Evolution:
     A class to perform the evolutionary algorithm and produce plots with the results.
     """
 
-    def __init__(self, fps, nets_config, env_config, robot_config):
+    def __init__(
+        self, fps: int, nets_config: dict, env_config: dict, robot_config: dict
+    ):
         self.nets_num = nets_config["num"]
         self.net_layers = nets_config["layers"]
         self.nets = [Network(self.net_layers) for _ in range(self.nets_num)]
@@ -74,9 +77,62 @@ class Evolution:
 
     # TODO: selection, crossover & mutation, reproduction
 
+    # ==================== Selection ====================
+
+    def tournament_selection(
+        self,
+        selected_num: int,
+        tournament_size: int,
+        nets_sorted: list[Network],
+        values_sorted: np.ndarray,
+    ):
+        """
+        Selects a number of networks using tournament selection with tournaments
+        of a fixed size.
+        """
+        selected = []
+        selected_values = []
+        for _ in range(selected_num):
+            # Randomly select individuals
+            indices = random.sample(range(len(nets_sorted)), tournament_size)
+
+            # Determine the winner and make a copy
+            winner_idx = min(indices)
+            selected.append(nets_sorted[winner_idx].copy())
+            selected_values.append(values_sorted[winner_idx])
+
+        return selected, np.array(selected_values)
+
+    def rank_based_selection(
+        self, selected_num: int, nets_sorted: list[Network], values_sorted: np.ndarray
+    ):
+        """
+        Selects a number of networks using rank-based selection.
+        """
+        selected = []
+        selected_values = []
+        n = len(nets_sorted)
+        denom = n * (n + 1) / 2
+
+        # Rank based selection
+        # p(i) ~ 1 - r(i) / Sum r(i)
+        indices = np.random.choice(
+            n,
+            size=(selected_num,),
+            replace=False,
+            p=[(1 - (i + 1) / denom) / (n - 1) for i in range(n)],
+        ).astype("int")
+
+        # Make a copy of the selected individuals
+        for i in indices:
+            selected.append(nets_sorted[i].copy())
+            selected_values.append(values_sorted[i])
+
+        return selected, np.array(selected_values)
+
     # ==================== Evolutionary algorithm ====================
 
-    def log_histories(self, values_sorted):
+    def log_histories(self, values_sorted: np.ndarray):
         """
         Log the histories for plotting.
         """
@@ -85,7 +141,7 @@ class Evolution:
         self.history_average.append(np.average(values_sorted))
         self.history_diversity.append(self.diversity())
 
-    def generation(self, gen, draw=False):
+    def generation(self, gen: int, draw=False):
         """
         Creates a new generation of networks from the
         current one.
@@ -94,6 +150,9 @@ class Evolution:
         nets_sorted, values_sorted = self.sort_by_evaluation(draw)
         print(f"Generation {gen}: {values_sorted}")
         print()
+
+        # print(self.tournament_selection(5, 4, nets_sorted, values_sorted))
+        # print(self.rank_based_selection(5, nets_sorted, values_sorted))
 
         for net in nets_sorted[:-1]:
             for i, w in enumerate(net.weights):
@@ -114,7 +173,7 @@ class Evolution:
         # Log the histories for plotting
         self.log_histories(values_sorted)
 
-    def evolve(self, generations, draw=False):
+    def evolve(self, generations: int, draw=False):
         """
         Implements the evolutionary algorithm.
         """
@@ -169,7 +228,7 @@ class Evolution:
         plt.savefig(f"{self.output_path}/diversity.png")
         plt.clf()
 
-    def make_output_dir(self, path):
+    def make_output_dir(self, path: str):
         """
         Creates the output directory in which the plots will be saved.
         """

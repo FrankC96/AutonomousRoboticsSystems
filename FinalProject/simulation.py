@@ -20,7 +20,9 @@ class Simulation:
     in an environment and calculates the fitness value.
     """
 
-    def __init__(self, fps, networks: list[Network], env_config, robot_config):
+    def __init__(
+        self, fps: int, networks: list[Network], env_config: dict, robot_config: dict
+    ):
         self.fps = fps
         self.env_config = env_config
         self.robot_config = robot_config
@@ -95,7 +97,7 @@ class Simulation:
 
         return fitness_values
 
-    def fitness(self, dist_travelled, collected_dust, collisions_num):
+    def fitness(self, dist_travelled: float, collected_dust: int, collisions_num: int):
         """
         Fitness function.
         """

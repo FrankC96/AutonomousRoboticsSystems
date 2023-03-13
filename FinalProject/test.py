@@ -35,6 +35,7 @@ def game_loop():
 
 
 def test_simulation():
+    print()
     net = Network(NET_LAYERS)
     sim = Simulation(FPS, net, ENV_CONFIG, ROBOT_CONFIG)
     evaluation = sim.run()
@@ -42,8 +43,9 @@ def test_simulation():
 
 
 def test_evolution():
+    print()
     evolution = Evolution(FPS, NETS_CONFIG, ENV_CONFIG, ROBOT_CONFIG)
-    evolution.evolve(3, draw=False)
+    evolution.evolve(3, draw=True)
 
 
 if __name__ == "__main__":

@@ -14,7 +14,7 @@ class Robot:
     within an environment and to calculate the fitness parameters.
     """
 
-    def __init__(self, pos, radius, env: Environment):
+    def __init__(self, pos: tuple, radius: int, env: Environment):
         # Initialise the environment in which the robot moves
         self.env = env
 
@@ -43,7 +43,7 @@ class Robot:
         self.collected_dust = 0  # Total number of dust particles collected
         self.collisions_num = 0  # Total number of collisions
 
-    def set_motors(self, motors, fps):
+    def set_motors(self, motors: tuple, fps: int):
         """
         Sets the motor speeds.
         """
@@ -59,7 +59,7 @@ class Robot:
         self.VL = 0
         self.VR = 0
 
-    def update_motors(self, update, fps):
+    def update_motors(self, update: tuple, fps: int):
         """
         Updates the speeds of each motor according to user input.
         """
@@ -68,7 +68,7 @@ class Robot:
         self.VR = fps * self.motors[1]
         # print('Motors: ', self.motors)
 
-    def keyboard_input(self, fps, event):
+    def keyboard_input(self, fps: int, event: pg.event.Event):
         # Positive increment left wheel
         if event.key == pg.K_w:
             self.update_motors((1, 0), fps)
@@ -97,7 +97,7 @@ class Robot:
         elif event.key == pg.K_g:
             self.update_motors((-1, -1), fps)
 
-    def calculate_dpos_new_theta(self, fps):
+    def calculate_dpos_new_theta(self, fps: int):
         """
         Calculates the displacement and the new angle of the robot assuming
         there are no borders or obstacles to stop its movement.
@@ -135,7 +135,7 @@ class Robot:
 
             return np.array((new_x, new_y)) - self.pos, new_theta
 
-    def collision_handler(self, dpos):
+    def collision_handler(self, dpos: np.ndarray):
         """
         Updates the displacement dpos on the robot according to any potential collisions
         that might affect its movement. This is done by calculating the normal vector n
@@ -180,7 +180,7 @@ class Robot:
 
         return dpos
 
-    def move(self, fps):
+    def move(self, fps: int):
         """
         Updates the position and the angle of the robot, as well as the sensor
         position and output.
@@ -205,7 +205,7 @@ class Robot:
         # Update total distance travelled
         self.dist_travelled += np.linalg.norm(dpos)
 
-    def generate_dust(self, dust_particles):
+    def generate_dust(self, dust_particles: int):
         """
         Generates the dust.
         """
@@ -243,7 +243,7 @@ class Robot:
             [self.sensor_output(sensor_dir) for sensor_dir in self.sensors_dir]
         )
 
-    def sensor_output(self, sensor_dir):
+    def sensor_output(self, sensor_dir: np.ndarray):
         """
         Returns the output of a sensor by detecting any collisions.
         """
@@ -322,7 +322,7 @@ class Robot:
             # )
 
 
-def make_robot(robot_config, env):
+def make_robot(robot_config: dict, env: Environment):
     """
     Creates a robot from a configuration dictionary and an environment.
     """

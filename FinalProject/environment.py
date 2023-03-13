@@ -1,5 +1,6 @@
 import pygame as pg
 import numpy as np
+from typing import Literal
 
 from colors import *
 
@@ -11,7 +12,7 @@ class Wall:
     vector to a wall and the distance from a point on the plane to a wall.
     """
 
-    def __init__(self, start, end, normal_dir):
+    def __init__(self, start: int, end: int, normal_dir: Literal["in", "out"]):
         self.start = np.array(start)
         self.end = np.array(end)
         self.vector = self.end - self.start
@@ -22,7 +23,7 @@ class Wall:
             / np.linalg.norm(self.vector)
         )
 
-    def closest_point_and_distance_from(self, origin):
+    def closest_point_and_distance_from(self, origin: np.ndarray):
         """
         This function returns the closest point from a
         wall to another point on the plane (origin), as well
@@ -86,7 +87,9 @@ class Wall:
         return closest_point, dist
 
 
-def get_walls(left, top, width, height, normal_dir):
+def get_walls(
+    left: int, top: int, width: int, height: int, normal_dir: Literal["in", "out"]
+):
     """
     A function that generates the walls associated to a
     rectangle defined by the corner (left, top) and of
@@ -106,7 +109,9 @@ class Border(pg.Rect):
     of the environment along with its walls.
     """
 
-    def __init__(self, surface: pg.Surface, left, top, width, height):
+    def __init__(
+        self, surface: pg.Surface, left: int, top: int, width: int, height: int
+    ):
         pg.Rect.__init__(self, left, top, width, height)
         self.surface = surface
         self.walls = get_walls(left, top, width, height, "out")
@@ -117,7 +122,7 @@ class Border(pg.Rect):
         """
         pg.draw.rect(self.surface, WHITE, self)
 
-    def outside(self, point):
+    def outside(self, point: np.ndarray) -> bool:
         """
         Checks if a point is outside the border.
         """
@@ -128,7 +133,9 @@ class Border(pg.Rect):
             or self.bottom <= point[1]
         )
 
-    def collision_normals_and_current_distances(self, pos, dpos, radius):
+    def collision_normals_and_current_distances(
+        self, pos: np.ndarray, dpos: np.ndarray, radius: int
+    ):
         """
         Given a circle centered at pos and a vector dpos, this function
         calculates which walls (if any) will collide with the circle if
@@ -152,7 +159,9 @@ class Obstacle(pg.Rect):
     of the environment along with its walls.
     """
 
-    def __init__(self, surface: pg.Surface, left, top, width, height):
+    def __init__(
+        self, surface: pg.Surface, left: int, top: int, width: int, height: int
+    ):
         pg.Rect.__init__(self, left, top, width, height)
         self.surface = surface
         self.walls = get_walls(left, top, width, height, "in")
@@ -164,7 +173,7 @@ class Obstacle(pg.Rect):
         """
         pg.draw.rect(self.surface, BLACK, self)
 
-    def inside(self, point):
+    def inside(self, point: np.ndarray) -> bool:
         """
         Checks if a point is inside the obstacle.
         """
@@ -172,7 +181,9 @@ class Obstacle(pg.Rect):
             self.left <= point[0] <= self.right and self.top <= point[1] <= self.bottom
         )
 
-    def collision_normal_and_current_distance(self, pos, dpos, radius):
+    def collision_normal_and_current_distance(
+        self, pos: np.ndarray, dpos: np.ndarray, radius: int
+    ):
         """
         Given a circle centered at pos and a vector dpos, this function
         calculates which point of the obstacle (if any) will collide with the circle
@@ -211,12 +222,14 @@ class Environment:
     environment are assumed to be rectangular.
     """
 
-    def __init__(self, surface: pg.Surface, left, top, width, height):
+    def __init__(
+        self, surface: pg.Surface, left: int, top: int, width: int, height: int
+    ):
         self.surface = surface
         self.border = Border(surface, left, top, width, height)
         self.obstacles: list[Obstacle] = []
 
-    def add_obstacle(self, left, top, width, height):
+    def add_obstacle(self, left: int, top: int, width: int, height: int):
         """
         Adds an obstacle to the environment.
         """
