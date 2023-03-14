@@ -8,7 +8,7 @@ from robot import *
 from network import *
 
 
-SIMULATION_SECS = 10
+SIMULATION_SECS = 30
 MAX_MOTOR_SPEED = 10
 
 FITNESS_WEIGHTS = (2, 10, 1)

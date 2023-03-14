@@ -75,8 +75,6 @@ class Evolution:
 
         return diversity
 
-    # TODO: selection, crossover & mutation, reproduction
-
     # ==================== Selection ====================
 
     def tournament_selection(
@@ -130,6 +128,62 @@ class Evolution:
 
         return selected, np.array(selected_values)
 
+    # ==================== Crossover ====================
+
+    def crossover(self, selected: list[Network]):
+        """
+        Creates a list of networks by combining the weights
+        and biases of the parents.
+        """
+        crossover_networks = []
+        window = 0.5
+        if len(selected) % 2 == 1:
+            selected.pop()
+
+        for i in range(0, len(selected), 2):  # Take each pair of the selected networks
+            parent1 = selected[i]
+            parent2 = selected[i + 1]
+            crossover_weights = []
+            crossover_biases = []
+
+            # Crossover weights
+            for w1, w2 in zip(parent1.weights, parent2.weights):
+                w = np.zeros(w1.shape)
+                w[: int(w1.shape[0] * window)] = w1[: int(w1.shape[0] * window)]
+                w[int(w2.shape[0] * window) :] = w2[int(w2.shape[0] * window) :]
+                crossover_weights.append(w)
+
+            # Crossover biases
+            for b1, b2 in zip(parent1.biases, parent2.biases):
+                b = np.zeros(b1.shape)
+                b[: int(b1.shape[0] * window)] = b1[: int(b1.shape[0] * window)]
+                b[int(b2.shape[0] * window) :] = b2[int(b2.shape[0] * window) :]
+                crossover_biases.append(b)
+            crossover_network = Network(
+                self.net_layers, crossover_weights, crossover_biases
+            )
+            crossover_networks.append(crossover_network)
+
+        return crossover_networks
+
+    # ==================== Mutation ====================
+
+    def mutate(self, gen: int, selected: list[Network]):
+        mutated_networks = []
+
+        for net in selected:
+            for i, w in enumerate(net.weights):
+                w += 1 / (gen + 1) * np.sign(w) * np.random.uniform(size=w.shape)
+                net.weights[i] = w
+
+            for i, b in enumerate(net.biases):
+                b += 1 / (gen + 1) * np.sign(b) * np.random.uniform(size=b.shape)
+                net.biases[i] = b
+
+            mutated_networks.append(net)
+
+        return mutated_networks
+
     # ==================== Evolutionary algorithm ====================
 
     def log_histories(self, values_sorted: np.ndarray):
@@ -151,21 +205,35 @@ class Evolution:
         print(f"Generation {gen}: {values_sorted}")
         print()
 
-        # print(self.tournament_selection(5, 4, nets_sorted, values_sorted))
-        # print(self.rank_based_selection(5, nets_sorted, values_sorted))
+        # Selection
+        best = nets_sorted[0]
+        tournament_selected, _ = self.tournament_selection(
+            4, 5, nets_sorted, values_sorted
+        )
+        rank_selected, _ = self.rank_based_selection(6, nets_sorted, values_sorted)
 
-        for net in nets_sorted[:-1]:
-            for i, w in enumerate(net.weights):
-                w += 1 / (gen + 1) * np.sign(w) * np.random.uniform(size=w.shape)
-                net.weights[i] = w
+        # Crossover & mutation
+        best_child = self.crossover(nets_sorted[:2])
+        tournament_children = self.crossover(tournament_selected)
+        rank_children = self.crossover(rank_selected)
 
-            for i, b in enumerate(net.biases):
-                b += 1 / (gen + 1) * np.sign(b) * np.random.uniform(size=b.shape)
-                net.biases[i] = b
+        children_mutated = self.mutate(gen, tournament_children + rank_children)
+        mutated_rest = self.mutate(gen, nets_sorted[1:])
 
-            new_generation.append(net)
+        # Reproduction
 
-        new_generation.append(Network(self.net_layers))
+        # Keep best unchanged
+        new_generation.append(best)
+        new_generation.append(best_child)
+        # Add the mutated children
+        new_generation.extend(children_mutated)
+        # Fill in the rest with mutated parents
+        while len(new_generation) < self.nets_num - 1:
+            i = random.randint(0, len(mutated_rest) - 1)
+            new_generation.append(mutated_rest[i])
+            mutated_rest.pop(i)
+
+        new_generation.append(Network(self.layers))
 
         # Update the organisms with the new generation
         self.nets = new_generation

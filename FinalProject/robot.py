@@ -207,7 +207,7 @@ class Robot:
 
     def generate_dust(self, dust_particles: int):
         """
-        Generates the dust.
+        Generates the dust that the robot can clean.
         """
         for _ in range(dust_particles):
             while True:

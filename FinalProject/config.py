@@ -17,5 +17,5 @@ ROBOT_CONFIG = {
     "dust particles": 500,
 }
 
-NET_LAYERS = [12, 4, 2]
+NET_LAYERS = [12, 6, 4, 2]
 NETS_CONFIG = {"num": 10, "layers": NET_LAYERS}
