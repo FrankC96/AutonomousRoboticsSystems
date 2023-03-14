@@ -11,7 +11,7 @@ from network import *
 SIMULATION_SECS = 30
 MAX_MOTOR_SPEED = 10
 
-FITNESS_WEIGHTS = (2, 10, 1)
+FITNESS_WEIGHTS = (5, 10, 2)  # Distance, dust, collisions
 
 
 class Simulation:

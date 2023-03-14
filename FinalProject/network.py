@@ -44,7 +44,7 @@ class Network:
 
         # Set activations
         if activations is None:
-            self.activations = [lambda x: x] * (len(layers) - 2) + [
+            self.activations = [lambda x: np.maximum(x, 0)] * (len(layers) - 2) + [
                 lambda x: np.tanh(x)
             ]
         else:

@@ -130,13 +130,46 @@ class Evolution:
 
     # ==================== Crossover ====================
 
-    def crossover(self, selected: list[Network]):
+    def crossover_average(self, selected: list[Network]):
+        """
+        Creates a list of networks by taking the average
+        of the weights and biases of the parents.
+        """
+        crossover_networks = []
+        weight1 = 0.5
+        if len(selected) % 2 == 1:
+            selected.pop()
+
+        for i in range(0, len(selected), 2):  # Take each pair of the selected networks
+            parent1 = selected[i]
+            parent2 = selected[i + 1]
+            crossover_weights = []
+            crossover_biases = []
+
+            # Crossover weights
+            for w1, w2 in zip(parent1.weights, parent2.weights):
+                w = weight1 * w1 + (1 - weight1) * w2
+                crossover_weights.append(w)
+
+            # Crossover biases
+            for b1, b2 in zip(parent1.biases, parent2.biases):
+                b = weight1 * b1 + (1 - weight1) * b2
+                crossover_biases.append(b)
+
+            crossover_network = Network(
+                self.net_layers, crossover_weights, crossover_biases
+            )
+            crossover_networks.append(crossover_network)
+
+        return crossover_networks
+
+    def crossover_replace(self, selected: list[Network]):
         """
         Creates a list of networks by combining the weights
         and biases of the parents.
         """
         crossover_networks = []
-        window = 0.5
+        window = 0.6
         if len(selected) % 2 == 1:
             selected.pop()
 
@@ -206,34 +239,35 @@ class Evolution:
         print()
 
         # Selection
-        best = nets_sorted[0]
         tournament_selected, _ = self.tournament_selection(
             4, 5, nets_sorted, values_sorted
         )
         rank_selected, _ = self.rank_based_selection(6, nets_sorted, values_sorted)
 
         # Crossover & mutation
-        best_child = self.crossover(nets_sorted[:2])
-        tournament_children = self.crossover(tournament_selected)
-        rank_children = self.crossover(rank_selected)
+        best = nets_sorted[0]
+        best_child = self.crossover_replace(nets_sorted[:2])
+        tournament_children = self.crossover_replace(tournament_selected)
+        rank_children = self.crossover_average(rank_selected)
 
-        children_mutated = self.mutate(gen, tournament_children + rank_children)
-        mutated_rest = self.mutate(gen, nets_sorted[1:])
+        best_child_mutated = self.mutate(gen, best_child)[0]
+        mutated_rest = self.mutate(gen, nets_sorted[:-2])
 
         # Reproduction
 
         # Keep best unchanged
         new_generation.append(best)
-        new_generation.append(best_child)
-        # Add the mutated children
-        new_generation.extend(children_mutated)
+        new_generation.append(best_child_mutated)
+        # Add the children
+        new_generation.extend(tournament_children)
+        new_generation.extend(rank_children)
         # Fill in the rest with mutated parents
-        while len(new_generation) < self.nets_num - 1:
+        while mutated_rest and len(new_generation) < self.nets_num - 1:
             i = random.randint(0, len(mutated_rest) - 1)
             new_generation.append(mutated_rest[i])
             mutated_rest.pop(i)
 
-        new_generation.append(Network(self.layers))
+        new_generation.append(Network(self.net_layers))
 
         # Update the organisms with the new generation
         self.nets = new_generation
