@@ -36,4 +36,5 @@ class TestPso(unittest.TestCase):
         self.assertEqual(self.pso.best_position.shape, (self.pso.dimensions, ))
 
     def test_sol_bounds(self):
-        self.assertLessEqual(self.pso.particle_position.all(), self.pso.stable_thrs)
+        self.assertLessEqual(self.pso.particle_position.all(), self.pso.b_up)
+        self.assertGreaterEqual(self.pso.particle_position.all(), self.pso.b_low)
