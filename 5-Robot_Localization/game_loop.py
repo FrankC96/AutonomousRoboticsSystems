@@ -6,6 +6,8 @@ from environment import *
 from robot import *
 from beacons import *
 
+from kalman_filter import KalmanFilter
+
 pg.font.init()
 
 
@@ -146,10 +148,10 @@ bord3 = (80, env.border.bottom, env.border.width, 1)
 bord4 = (WIDTH - 80, 0, 1, env.border.bottom)
 
 # Initialize beacons
-b1 = Beacon(screen, (350, 550))
-b2 = Beacon(screen, (600, 250))
-b3 = Beacon(screen, (600, 500))
-b4 = Beacon(screen, (80, 255))
+b1 = Beacon(screen, (80, 450))
+b2 = Beacon(screen, (350, 500))
+b3 = Beacon(screen, (80, 600))
+# b4 = Beacon(screen, (80, 400))
 
 env.add_obstacle(*OBSTACLE_1_LTWH)
 env.add_obstacle(*OBSTACLE_2_LTWH)
@@ -162,7 +164,8 @@ env.add_obstacle(*bord4)
 obs = env.return_obs()
 bords = env.return_bords()
 
-robot = Robot(pos=(200, 200), radius=40, env=env)
+robot = Robot(pos=(500, 500), radius=40, env=env)
+
 d0, d1, d2, d3, d4, d5, d6, d7, d8, d9, d10, d11 = (
     (),
     (),
@@ -179,6 +182,12 @@ d0, d1, d2, d3, d4, d5, d6, d7, d8, d9, d10, d11 = (
 )
 font = pg.font.Font(None, 36)
 
+P = 5 * np.eye(3)
+Q = 100 * np.eye(2)
+R = 0 * np.eye(3)
+
+kf = KalmanFilter(x=[*robot.pos, robot.theta], u=[0, 0], meas=0, P=P, Q=Q, R=R, dt=0.33, lm=[])
+# f = KalmanFilter(dim_x=3, dim_z=2)
 
 def GAME_LOOP(running):
     while running:
@@ -216,8 +225,10 @@ def GAME_LOOP(running):
                 elif event.key == pg.K_g:
                     robot.update_motors((-1, -1), FPS)
 
+
         # Movement
         robot.move(FPS)
+
         # Draw environment and robot
         env.draw()
         robot.draw()
@@ -231,18 +242,30 @@ def GAME_LOOP(running):
         b3.draw()
         b3.check_inside(robot.pos)
 
-        b4.draw()
-        b4.check_inside(robot.pos)
+        # b4.draw()
+        # b4.check_inside(robot.pos)
 
-        lm = (b1.lm, b2.lm, b3.lm, b4.lm)
+        lm = (b1.lm, b2.lm, b3.lm, b3.lm)
         draw_Radar(
             robot.pos, robot.theta, d0, d1, d2, d3, d4, d5, d6, d7, d8, d9, d10, d11
         )
 
-        pg.display.update()
+        kf.u[0] = 2 / (robot.VL + robot.VR)
+        kf.u[1] = (robot.VR - robot.VL) / (robot.radius * 2)
+        kf.predict()
+        if lm[0] and lm[1] and lm[2]:
+
+            kf.lm = (lm[0], lm[1], lm[2])
+            kf.compute_loc()
+            kf.correct()
+
+        print(f"filter {kf.x} | true {(robot.pos, robot.theta)}.")
+        pg.draw.circle(screen, (255, 0, 0), (kf.x[0], kf.x[1]), 20)
+        pg.display.flip()
+
         clock.tick(FPS)
         # print (clock.get_fps())
-        print(lm)
+
     pg.quit()
 
 

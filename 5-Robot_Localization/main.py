@@ -5,16 +5,18 @@ from kalman_filter import KalmanFilter
 
 
 P = 0.1 * np.eye(3)
-Q = 1000 * np.eye(3)
-R = 0.001 * np.eye(3)
+Q = 100 * np.eye(2)
+R = 0.1 * np.eye(3)
 
-kf = KalmanFilter(x=[0, 0, 0], u=[10, 1], meas=0, P=P, Q=Q, R=R, dt=0.05)
+kf = KalmanFilter(x=[0, 0, 0], u=[10, 1], meas=0, P=P, Q=Q, R=R, dt=0.05, lm=(2, 2))
 
 for k in range(1000):
     kf.predict()
-    if k % 10 == 0:
+    if k == k:
         print(f"Measure at timestep {k} with {kf.x_prime}.")
-        kf.meas = kf.x[0] + 100
+        # kf.meas = kf.x[0] + 100
+
+        kf.compute_loc()
         kf.correct()
 
     plt.figure(1)
